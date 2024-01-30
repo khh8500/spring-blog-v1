@@ -8,14 +8,14 @@ import lombok.Data;
 public class UserRequest {
 
     @Data
-    public static class JoinDTO {
+    public static class joinDTO {
         private String username;
         private String password;
         private String email;
     }
 
     @Data
-    public static class LoginDTO {
+    public static class loginDTO {
         private String username;
         private String password;
     }
