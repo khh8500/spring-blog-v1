@@ -57,7 +57,7 @@ public class UserController {
             return "error/400";
         }
 
-        //2. 동일 username 체크
+        //2. 동일 username 체크 (나중에 하나의 트랜잭션으로 묶는 것이 좋다)
         User user = userRepository.findByUsername(requestDTO.getUsername());
         if (user == null) {
 
@@ -87,6 +87,7 @@ public class UserController {
 
     @GetMapping("/logout")
     public String logout() {
+        session.invalidate();
         return "redirect:/";
     }
 
