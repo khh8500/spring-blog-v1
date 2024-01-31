@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -48,16 +49,24 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public String join(UserRequest.joinDTO requestDTO){
+    public String join(UserRequest.joinDTO requestDTO) {
         System.out.println(requestDTO);
 
         // 1. 유효성 검사
-        if(requestDTO.getUsername().length() < 3) {
+        if (requestDTO.getUsername().length() < 3) {
             return "error/400";
         }
 
-        //2. 모델에게 위임하기
+        //2. 동일 username 체크
+        User user = userRepository.findByUsername(requestDTO.getUsername());
+        if (user == null) {
+
+            //3. 모델에게 위임하기
         userRepository.save(requestDTO);
+        }else {
+            return "error/400";
+        }
+
         return "redirect:/loginForm";
     }
 
