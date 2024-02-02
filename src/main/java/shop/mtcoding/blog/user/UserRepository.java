@@ -1,11 +1,10 @@
 package shop.mtcoding.blog.user;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jdk.swing.interop.SwingInterOpUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 @Repository // 내가 new 하지 않아도 메모리에 띄울 수 있음
 public class UserRepository {

@@ -1,13 +1,13 @@
 package shop.mtcoding.blog.user;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
-@Entity // 리플렉션
+@Data// 리플렉션
+@Entity
 @Table(name = "user_tb")
 public class User {
     @Id
