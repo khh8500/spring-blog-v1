@@ -1,14 +1,12 @@
 package shop.mtcoding.blog.user;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 
 /*컨트롤러
@@ -21,7 +19,7 @@ import java.time.LocalDateTime;
 7. DB처리를 원하면 모델에게 위임(DAO:서비스)한 후 View를 응답하면 끝
 * */
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor // final이 붙은 애들에 대한 생성자를 만들어줌
 @Controller
 public class UserController {
 
@@ -42,8 +40,8 @@ public class UserController {
         if (user == null) {
             return "error/401";
         }else {
-            session.setAttribute("sessionUser", user);
-            return "redirect:/";
+            session.setAttribute("sessionUser", user); // 락카에 담음
+            return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect
         }
 
     }
