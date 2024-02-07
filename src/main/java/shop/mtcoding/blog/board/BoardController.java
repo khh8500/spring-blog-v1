@@ -18,6 +18,25 @@ public class BoardController {
     private final HttpSession session;
     private final BoardRepository boardRepository;
 
+    @PostMapping("/board/{id}/update")
+    public String update(@PathVariable int id, BoardRequest.UpdateDTO requestDTO) {
+        // 1. 인증 체크
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) { // 401
+            return "error/loginForm";
+        }
+        // 2. 권한 체크
+        Board board = boardRepository.findById(id);
+        if (board.getUserId() != sessionUser.getId()) {
+            return "error/403";
+        }
+        // 3. 핵심 로직
+        // update board_tb set title = ?, content = ?, where id = ?;
+        boardRepository.update(requestDTO, id);
+
+        return "redirect:/board/"+id;
+    }
+
     @GetMapping("/board/{id}/updateForm")
     public String updateForm(@PathVariable int id, HttpServletRequest request) {
         // 1. 인증 안되면 나가
@@ -26,7 +45,7 @@ public class BoardController {
             return "error/loginForm";
         }
 
-        // 2. 권한 체크 없으면 나가
+        // 2. 권한 없으면 나가
         // 모델 위임 (id로 board를 조회)
         Board board = boardRepository.findById(id);
         if (board.getUserId() != sessionUser.getId()) {
@@ -54,6 +73,8 @@ public class BoardController {
             request.setAttribute("msg", "게시글을 삭제할 권한이 없습니다");
             return "error/40x";
         }
+
+        boardRepository.deleteById(id);
 
         return "redirect:/";
     }

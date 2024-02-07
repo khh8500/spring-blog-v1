@@ -50,11 +50,9 @@ public class UserRepository {
         Query query = em.createNativeQuery("SELECT * FROM user_tb WHERE username=?", User.class); // 알아서 매핑해줌
         query.setParameter(1, username);
 
-        try {
+
             User user = (User) query.getSingleResult();
             return user;
-        }catch (Exception e) {
-            return null;
-        }
+
     }
 }
