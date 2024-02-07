@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity // 리플렉션
 @Table(name = "user_tb")
 public class User {
-    @Id
+    @Id // pk 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
