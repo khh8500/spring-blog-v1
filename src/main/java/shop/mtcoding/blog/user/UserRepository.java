@@ -14,6 +14,14 @@ public class UserRepository {
     }
 
     @Transactional
+    public void userUpdate(UserRequest.userUpdateDTO requestDTO, int password) {
+        Query query = em.createNativeQuery("insert into user_tb(password) values = ?");
+        query.setParameter(1, requestDTO.getPassword());
+
+        query.executeUpdate();
+    }
+
+    @Transactional
     public void save(UserRequest.joinDTO requestDTO) { // 컨트롤러는 정보를 전달하면서 때리고 위임함
         Query query = em.createNativeQuery("insert into user_tb(username, password, email) values (?, ?, ?)");
         query.setParameter(1, requestDTO.getUsername());

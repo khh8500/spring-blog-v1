@@ -1,10 +1,13 @@
 package shop.mtcoding.blog.user;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.Mapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDateTime;
@@ -26,11 +29,28 @@ public class UserController {
     private final UserRepository userRepository; // null
     private final HttpSession session;
 
+    @PostMapping("/user/update")
+    public String userUpdate(UserRequest.updateDTO requestDTO, HttpServletRequest request) {
+        // 1. 인증 체크
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if(sessionUser==null){
+            return "redirect:/loginForm";
+        }
+
+        userRepository.userUpdate(requestDTO, password);
+
+        User user = userRepository.userUpdate(requestDTO);
+        session.setAttribute("sessionUser", user);
+
+            return "redirect:/";
+    }
+
+
     //원래는 get요청이나 예외 post요청하면 됨
     @PostMapping("/login")
     public String login(UserRequest.loginDTO requestDTO) { // 민감한 정보는 쿼리 스트링에 담아보낼 수 없음
         // 1. 유효성 검사
-        if(requestDTO.getUsername().length() < 3) {
+        if (requestDTO.getUsername().length() < 3) {
             return "error/400";
         }
 
@@ -39,7 +59,7 @@ public class UserController {
 
         if (user == null) {
             return "error/401";
-        }else {
+        } else {
             session.setAttribute("sessionUser", user); // 락카에 담음
             return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect
         }
@@ -60,8 +80,8 @@ public class UserController {
         if (user == null) {
 
             //3. 모델에게 위임하기
-        userRepository.save(requestDTO);
-        }else {
+            userRepository.save(requestDTO);
+        } else {
             return "error/400";
         }
 
@@ -91,4 +111,5 @@ public class UserController {
 
     @CreationTimestamp
     private LocalDateTime CreatedAt; // insert시 날짜 자동 생성
+
 }
