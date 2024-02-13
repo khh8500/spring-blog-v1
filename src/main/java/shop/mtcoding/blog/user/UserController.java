@@ -47,24 +47,24 @@ public class UserController {
 
 
     //원래는 get요청이나 예외 post요청하면 됨
-    @PostMapping("/login")
-    public String login(UserRequest.loginDTO requestDTO) { // 민감한 정보는 쿼리 스트링에 담아보낼 수 없음
-        // 1. 유효성 검사
-        if (requestDTO.getUsername().length() < 3) {
-            return "error/400";
-        }
-
-        // 2. 모델 필요 select * from user_tb where username=? and password=?
-        User user = userRepository.findByUsernameAndPassword(requestDTO); // DB에 조회할때 필요하니까 데이터를 받음
-
-        if (user == null) {
-            return "error/401";
-        } else {
-            session.setAttribute("sessionUser", user); // 락카에 담음
-            return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect
-        }
-
-    }
+//    @PostMapping("/login")
+//    public String login(UserRequest.loginDTO requestDTO) { // 민감한 정보는 쿼리 스트링에 담아보낼 수 없음
+//        // 1. 유효성 검사
+//        if (requestDTO.getUsername().length() < 3) {
+//            return "error/400";
+//        }
+//
+//        // 2. 모델 필요 select * from user_tb where username=? and password=?
+//        User user = userRepository.findByUsernameAndPassword(requestDTO); // DB에 조회할때 필요하니까 데이터를 받음
+//
+//        if (user == null) {
+//            return "error/401";
+//        } else {
+//            session.setAttribute("sessionUser", user); // 락카에 담음
+//
+//        }
+//          return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect
+//    }
 
     @PostMapping("/join")
     public String join(UserRequest.joinDTO requestDTO) {
