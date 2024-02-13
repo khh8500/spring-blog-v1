@@ -13,16 +13,9 @@ public class UserRepository {
         this.em = em;
     }
 
-    @Transactional
-    public void userUpdate(UserRequest.userUpdateDTO requestDTO, int password) {
-        Query query = em.createNativeQuery("insert into user_tb(password) values = ?");
-        query.setParameter(1, requestDTO.getPassword());
-
-        query.executeUpdate();
-    }
 
     @Transactional
-    public void save(UserRequest.joinDTO requestDTO) { // 컨트롤러는 정보를 전달하면서 때리고 위임함
+    public void save(UserRequest.JoinDTO requestDTO) { // 컨트롤러는 정보를 전달하면서 때리고 위임함
         Query query = em.createNativeQuery("insert into user_tb(username, password, email) values (?, ?, ?)");
         query.setParameter(1, requestDTO.getUsername());
         query.setParameter(2, requestDTO.getPassword());
@@ -32,7 +25,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public void saveV2(UserRequest.joinDTO requestDTO) {
+    public void saveV2(UserRequest.JoinDTO requestDTO) {
         User user = new User();// 통신을 통해 받은 데이터를 entity를 만들어서 담아보기
         user.setUsername(requestDTO.getUsername());
         user.setPassword(requestDTO.getPassword());
@@ -41,7 +34,7 @@ public class UserRepository {
         em.persist(user);
     }
 
-    public User findByUsernameAndPassword(UserRequest.loginDTO requestDTO) {
+    public User findByUsernameAndPassword(UserRequest.LoginDTO requestDTO) {
         Query query = em.createNativeQuery("SELECT * FROM user_tb WHERE username=? AND password=?", User.class); // 알아서 매핑해줌
         query.setParameter(1, requestDTO.getUsername());
         query.setParameter(2, requestDTO.getPassword());
@@ -58,9 +51,11 @@ public class UserRepository {
         Query query = em.createNativeQuery("SELECT * FROM user_tb WHERE username=?", User.class); // 알아서 매핑해줌
         query.setParameter(1, username);
 
-
-            User user = (User) query.getSingleResult();
+        try {
+            User user = (User) query.getSingleResult(); // 결과값이 없어서 터짐
             return user;
-
+        }catch (Exception e) {
+            return null;
+        }
     }
 }
