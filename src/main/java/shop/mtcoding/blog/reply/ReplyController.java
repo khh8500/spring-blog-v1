@@ -50,7 +50,7 @@ public String delete(@PathVariable int id){
             return "redirect:/loginForm";
         }
 
-        // 유효성 검사 (님들이 하세요)
+        // 유효성 검사
 
         // 핵심 코드
         replyRepository.save(requestDTO, sessionUser.getId());
