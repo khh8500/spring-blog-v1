@@ -23,16 +23,16 @@ public class BoardController {
     // ?title=제목1&content=내용1
     // title=제목1&content=내용1
     @PostMapping("/board/{id}/update")
-    public String update(@PathVariable int id, BoardRequest.UpdateDTO requestDTO){
+    public String update(@PathVariable int id, BoardRequest.UpdateDTO requestDTO) {
         // 1. 인증 체크
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if(sessionUser == null){
+        if (sessionUser == null) {
             return "redirect:/loginForm";
         }
 
         // 2. 권한 체크
         Board board = boardRepository.findById(id);
-        if(board.getUserId() != sessionUser.getId()){
+        if (board.getUserId() != sessionUser.getId()) {
             return "error/403";
         }
 
@@ -40,15 +40,15 @@ public class BoardController {
         // update board_tb set title = ?, content = ? where id = ?;
         boardRepository.update(requestDTO, id);
 
-        return "redirect:/board/"+id;
+        return "redirect:/board/" + id;
     }
 
 
     @GetMapping("/board/{id}/updateForm")
-    public String updateForm(@PathVariable int id, HttpServletRequest request){
+    public String updateForm(@PathVariable int id, HttpServletRequest request) {
         // 1. 인증 안되면 나가
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if(sessionUser == null){
+        if (sessionUser == null) {
             return "redirect:/loginForm";
         }
 
@@ -56,7 +56,7 @@ public class BoardController {
         // 모델 위임 (id로 board를 조회)
         Board board = boardRepository.findById(id);
 
-        if(board.getUserId() != sessionUser.getId()){
+        if (board.getUserId() != sessionUser.getId()) {
             return "error/403";
         }
 
@@ -120,23 +120,44 @@ public class BoardController {
     @GetMapping("/")
     public String index(
             HttpServletRequest request,
-            @RequestParam(value = "page", defaultValue = "0") Integer page) {
-        List<Board> boardList = boardRepository.findAll(page);
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "") String keyword) {
 
-        // 전체 페이지 개수
-        int count = boardRepository.count().intValue();
-        // 5 -> 2page
-        // 6 -> 2page
-        // 7 -> 3page
-        // 8 -> 3page
-        int namerge = count % 3 == 0 ? 0 : 1;
-        int allPageCount = count / 3 + namerge;
+        // isEmpty -> null, 공백
+        // isBlank -> null, 공백, 화이트 스페이스
 
-        request.setAttribute("boardList", boardList);
-        request.setAttribute("first", page==0);
-        request.setAttribute("last", allPageCount == page+1);
-        request.setAttribute("prev", page-1);
-        request.setAttribute("next", page+1);
+        if(keyword.isBlank()){
+            List<Board> boardList = boardRepository.findAll(page);
+            // 전체 페이지 개수
+            int count = boardRepository.count().intValue();
+            // 5 -> 2page
+            // 6 -> 2page
+            // 7 -> 3page
+            // 8 -> 3page
+            int namerge = count % 3 == 0 ? 0 : 1;
+            int allPageCount = count / 3 + namerge;
+
+            request.setAttribute("boardList", boardList);
+            request.setAttribute("first", page == 0);
+            request.setAttribute("last", allPageCount == page + 1);
+            request.setAttribute("prev", page - 1);
+            request.setAttribute("next", page + 1);
+            request.setAttribute("keyword", "");
+        }else{
+            List<Board> boardList = boardRepository.findAll(page, keyword);
+            // 전체 페이지 개수
+            int count = boardRepository.count(keyword).intValue();
+
+            int namerge = count % 3 == 0 ? 0 : 1;
+            int allPageCount = count / 3 + namerge;
+
+            request.setAttribute("boardList", boardList);
+            request.setAttribute("first", page == 0);
+            request.setAttribute("last", allPageCount == page + 1);
+            request.setAttribute("prev", page - 1);
+            request.setAttribute("next", page + 1);
+            request.setAttribute("keyword", keyword);
+        }
 
         return "index";
     }
