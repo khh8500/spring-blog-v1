@@ -5,56 +5,46 @@ import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-@Repository // 내가 new 하지 않아도 메모리에 띄울 수 있음
+@Repository // IoC에 new하는 방법
 public class UserRepository {
-    private EntityManager em; // 컴포지션
-
-    public UserRepository(EntityManager em) { // 생성자
+    // DB에 접근할 수 있는 매니저 객체
+    // 스프링이 만들어서 IoC에 넣어둔다.
+    // DI에서 꺼내 쓰기만 하면된다.
+    private EntityManager em;
+    // 생성자 주입 (DI 코드)
+    public UserRepository(EntityManager em) {
         this.em = em;
     }
-
-    @Transactional
-    public void save(UserRequest.joinDTO requestDTO) { // 컨트롤러는 정보를 전달하면서 때리고 위임함
-        Query query = em.createNativeQuery("insert into user_tb(username, password, email) values (?, ?, ?)");
+    @Transactional // db에 write 할때는 필수
+    public void save(UserRequest.joinDTO requestDTO) {
+        Query query = em.createNativeQuery("insert into user_tb(username, password, email, created_at) values(?,?,?, now())");
         query.setParameter(1, requestDTO.getUsername());
         query.setParameter(2, requestDTO.getPassword());
         query.setParameter(3, requestDTO.getEmail());
-
         query.executeUpdate();
     }
 
-    @Transactional
-    public void saveV2(UserRequest.joinDTO requestDTO) {
-        User user = new User();// 통신을 통해 받은 데이터를 entity를 만들어서 담아보기
-        user.setUsername(requestDTO.getUsername());
-        user.setPassword(requestDTO.getPassword());
-        user.setEmail(requestDTO.getEmail());
-
-        em.persist(user);
-    }
-
-    public User findByUsernameAndPassword(UserRequest.loginDTO requestDTO) {
-        Query query = em.createNativeQuery("SELECT * FROM user_tb WHERE username=? AND password=?", User.class); // 알아서 매핑해줌
-        query.setParameter(1, requestDTO.getUsername());
-        query.setParameter(2, requestDTO.getPassword());
-
-        try {
-            User user = (User) query.getSingleResult(); // 결과값이 없어서 터짐
-            return user;
-        }catch (Exception e) {
-            return null;
-        }
-    }
-
     public User findByUsername(String username) {
-        Query query = em.createNativeQuery("SELECT * FROM user_tb WHERE username=?", User.class); // 알아서 매핑해줌
+        Query query = em.createNativeQuery("select * from user_tb where username=?", User.class);
         query.setParameter(1, username);
 
         try {
             User user = (User) query.getSingleResult();
             return user;
-        }catch (Exception e) {
-            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("아이디를 찾을 수 없습니다");
+        }
+    }
+
+    public User findByUsernameAndPassword(UserRequest.loginDTO requestDTO) {
+        Query query = em.createNativeQuery("select * from user_tb where username=? and password=?", User.class);
+        query.setParameter(1, requestDTO.getUsername());
+        query.setParameter(2, requestDTO.getPassword());
+        try {
+            User user = (User) query.getSingleResult();
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException("아이디 혹은 비밀번호를 찾을 수 없습니다");
         }
     }
 }

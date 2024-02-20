@@ -2,11 +2,10 @@ package shop.mtcoding.blog.user;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import java.time.LocalDateTime;
 
 /*컨트롤러
 1. 요청받기 (URL(LOCATION) - URI(IDENTIFY) 포함)
@@ -18,76 +17,64 @@ import java.time.LocalDateTime;
 7. DB처리를 원하면 모델에게 위임(DAO:서비스)한 후 View를 응답하면 끝
 * */
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor // final이 붙은 애들에 대한 생성자를 만들어줌
 @Controller
 public class UserController {
-
-    private final UserRepository userRepository; // null
+    // 자바는 final 변수는 반드시 초기화가 되어야함.
+    private final UserRepository userRepository;
     private final HttpSession session;
-
-    //원래는 get요청이나 예외 post요청하면 됨
+    // 왜 조회인데 post임? 민간함 정보는 body로 보낸다.
+    // 로그인만 예외로 select인데 post 사용
+    // select * from user_tb where username=? and password=?
     @PostMapping("/login")
-    public String login(UserRequest.loginDTO requestDTO) { // 민감한 정보는 쿼리 스트링에 담아보낼 수 없음
-        // 1. 유효성 검사
-        if(requestDTO.getUsername().length() < 3) {
-            return "error/400";
+    public String login(UserRequest.loginDTO requestDTO) {
+        System.out.println(requestDTO); // toString -> @Data
+
+        if (requestDTO.getUsername().length() < 3) {
+            throw new RuntimeException("유저네임 길이가 너무 짧아요");
         }
 
-        // 2. 모델 필요 select * from user_tb where username=? and password=?
-        User user = userRepository.findByUsernameAndPassword(requestDTO); // DB에 조회할때 필요하니까 데이터를 받음
+        User user = userRepository.findByUsername(requestDTO.getUsername());
 
-        if (user == null) {
-            return "error/401";
-        }else {
-            session.setAttribute("sessionUser", user);
-            return "redirect:/";
+        if(!BCrypt.checkpw(requestDTO.getPassword(), user.getPassword())){
+            throw new RuntimeException("패스워드가 틀렸습니다");
         }
+        session.setAttribute("sessionUser", user); // 락카에 담음 (StateFul)
 
+
+        return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect 외우기
     }
 
     @PostMapping("/join")
     public String join(UserRequest.joinDTO requestDTO) {
         System.out.println(requestDTO);
 
-        // 1. 유효성 검사
-        if (requestDTO.getUsername().length() < 3) {
-            return "error/400";
+        String rawPassword = requestDTO.getPassword();
+        String encPassword = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
+        requestDTO.setPassword(encPassword);
+
+        try {
+            userRepository.save(requestDTO); // 모델에 위임하기
+        } catch (Exception e) {
+            throw new RuntimeException("아이디가 중복되었어요");
         }
-
-        //2. 동일 username 체크 (나중에 하나의 트랜잭션으로 묶는 것이 좋다)
-        User user = userRepository.findByUsername(requestDTO.getUsername());
-        if (user == null) {
-
-            //3. 모델에게 위임하기
-        userRepository.save(requestDTO);
-        }else {
-            return "error/400";
-        }
-
         return "redirect:/loginForm";
     }
-
-    @GetMapping("/joinForm") // view만 원함
+    @GetMapping("/joinForm")
     public String joinForm() {
         return "user/joinForm";
     }
-
-    @GetMapping("/loginForm") // view만 원함
+    @GetMapping("/loginForm")
     public String loginForm() {
         return "user/loginForm";
     }
-
     @GetMapping("/user/updateForm")
     public String updateForm() {
         return "user/updateForm";
     }
-
     @GetMapping("/logout")
     public String logout() {
         session.invalidate();
         return "redirect:/";
     }
-
-    @CreationTimestamp
-    private LocalDateTime CreatedAt; // insert시 날짜 자동 생성
 }

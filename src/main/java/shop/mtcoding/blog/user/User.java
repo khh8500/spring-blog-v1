@@ -14,7 +14,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(unique = true)
+    @Column(unique = true) // 제약 조건 걸어야 한다.
     private String username;
 
     @Column(length = 60, nullable = false) // null일 수 없다
