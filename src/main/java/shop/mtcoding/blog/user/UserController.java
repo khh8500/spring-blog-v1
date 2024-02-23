@@ -6,6 +6,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import shop.mtcoding.blog.board.ApiUtil;
+
 import java.time.LocalDateTime;
 
 /*컨트롤러
@@ -25,6 +28,16 @@ public class UserController {
     private final UserRepository userRepository; // null
     private final HttpSession session;
 
+    @GetMapping("/api/username-same-check")
+    public @ResponseBody ApiUtil<?> usernameSameCheck(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) { // 회원가입 해도 된다.
+            return new ApiUtil<>(true);
+        } else { // 회원가입 하면 안된다.
+            return new ApiUtil<>(false);
+        }
+    }
+
     //원래는 get요청이나 예외 post요청하면 됨
     @PostMapping("/login")
     public String login(UserRequest.loginDTO requestDTO) { // 민감한 정보는 쿼리 스트링에 담아보낼 수 없음
@@ -42,7 +55,6 @@ public class UserController {
             session.setAttribute("sessionUser", user);
             return "redirect:/";
         }
-
     }
 
     @PostMapping("/join")
